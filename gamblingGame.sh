@@ -3,62 +3,86 @@
 # Welcome Message
 echo "Welcome to the world of Gambling."
 
-declare -A gamblerPaidPerDay
+declare -a luckiestDay
+declare -a unluckiestDay
 
-#CONSTANTS
+# CONSTANTS 
 STAKE_MONEY_PER_DAY=100;
-STAKE_PERCENT=$(($((STAKE_MONEY_PER_DAY))*50/100));
-MAX_MONEY_WIN_PER_DAY=$((STAKE_MONEY_PER_DAY+STAKE_PERCENT));
-MIN_MONEY_LOST_PER_DAY=$((STAKE_MONEY_PER_DAY-STAKE_PERCENT));
-TOTAL_DAYS_IN_MONTH=30;
-TOTAL_STAKE_AMOUNT=$((STAKE_MONEY_PER_DAY*TOTAL_DAYS_IN_MONTH));
+TOTAL_DAYS_IN_MONTH=10;
 
 # Declare variables and assign values.
-moneyEarns=$((STAKE_MONEY_PER_DAY));
-exactMoneyEarn=0;
-countProfitDays=0;
-countLossDays=0;
-totalMoneyWinsInMonth=0;
-totalMoneyLostInMonth=0;
+tranferStakeMoneyPerDay=0;
+newStakeMoneyPerDay=0;
+collectWinTempRecords=0;
+collectLostTempRecords=0;
+winPerDay=0;
+lostPerDay=0;
 
-# Gambler plays for 1 Month. 
+moneyEarns=$((STAKE_MONEY_PER_DAY));
+
+# Gambler plays for a Month and Finds Gambler Luckiest Day and Unluckiest Day. 
 for (( daysCount=1;daysCount<=$TOTAL_DAYS_IN_MONTH;daysCount++ ))
 do
-	while [[ $moneyEarns -lt $MAX_MONEY_WIN_PER_DAY && $moneyEarns -gt $MIN_MONEY_LOST_PER_DAY ]]
-	do
-		gameResult=$(($RANDOM%2));
-
-		if [[ $gameResult -eq 1 ]]
-		then
-			((moneyEarns++));
-		else
-			((moneyEarns--));
-		fi
-	done
-        if [[ $moneyEarns -eq $MAX_MONEY_WIN_PER_DAY ]]
-        then    
-            ((countProfitDays++));
-            totalMoneyWinsInMonth=$(($totalMoneyWinsInMonth+$moneyEarns));
-        elif [[ $moneyEarns -eq $MIN_MONEY_LOST_PER_DAY ]]
-        then
-            ((countLossDays++));
-            totalMoneyLostInMonth=$(($totalMoneyLostInMonth+$moneyEarns));
-        else
-            echo "No Loss No Profit!"
-        fi                        
-	gamblerPaidPerDay[daysCount]=$((moneyEarns));
-	exactMoneyEarn=$(($exactMoneyEarn+$moneyEarns));    
-	moneyEarns=$((STAKE_MONEY_PER_DAY));
+    intializationNConversionGameProcess
+    checksGamblerConditionsWinOrLost
+    checkGamblerDaysNMoneyWinsOrLostMax
+    
+    echo "As the day $daysCount, Gambler starts with cash $tranferStakeMoneyPerDay and at the end he earns $newStakeMoneyPerDay dollars."
 done
 
-if [[ $exactMoneyEarn -gt $TOTAL_STAKE_AMOUNT ]]
-then
-    echo "At End of Month, Gambler Wins $countProfitDays Days and $totalMoneyWinsInMonth Dollar."
-elif [[ $exactMoneyEarn -lt $TOTAL_STAKE_AMOUNT ]]
-then
-    echo "At End of Month, Gambler Lost $countLossDays Days and $totalMoneyLostInMonth Dollar."
-else
-    echo "Gambler has Neither Won Nor Lost."
-fi
+echo "Gambler luckiest day was day $winPerDay and the money that win maximum was $collectWinTempRecords"
+echo "Gambler luckiest day was day $lostPerDay and the money that win maximum was $collectLostTempRecords"
 
-#End of UseCase 05
+function intializationNConversionGameProcess() {
+    tranferStakeMoneyPerDay=$(($newStakeMoneyPerDay+$STAKE_MONEY_PER_DAY));
+    stakeGamePercent=$(($((tranferStakeMoneyPerDay))*50/100));
+    maxMoneyWinPerDay=$((tranferStakeMoneyPerDay+stakeGamePercent));
+    minMoneyLostPerDay=$((tranferStakeMoneyPerDay-stakeGamePercent));
+	moneyEarns=$((tranferStakeMoneyPerDay));
+}
+
+function checksGamblerConditionsWinOrLost() {
+    while [[ $moneyEarns -lt $maxMoneyWinPerDay && $moneyEarns -gt $minMoneyLostPerDay ]]
+	do
+		gamblerWinsOrLooseGamePerDay
+	done
+    newStakeMoneyPerDay=$((moneyEarns));
+}
+
+function checkGamblerDaysNMoneyWinsOrLostMax() {
+    if [[ $tranferStakeMoneyPerDay -lt $moneyEarns ]]
+    then
+        winsMoney=$(($moneyEarns-$tranferStakeMoneyPerDay))
+        maxWinMoneyAndDays
+    else
+        lostMoney=$(($tranferStakeMoneyPerDay-$moneyEarns));
+        maxLostMoneyAndDays
+    fi
+}
+
+function gamblerWinsOrLooseGamePerDay() {
+    gameResult=$(($RANDOM%2));
+	if [[ $gameResult -eq 1 ]]
+	then
+		((moneyEarns++));        
+	else
+		((moneyEarns--));
+    fi
+}
+
+function maxLostMoneyAndDays() {
+    if [[ $lostMoney -gt $collectLostTempRecords ]]
+    then
+        collectLostTempRecords=$(($lostMoney));
+        lostPerDay=$((daysCount));
+    fi
+}
+
+function maxWinMoneyAndDays() {
+    if [[ $winsMoney -gt $collectWinTempRecords ]]
+    then
+        collectWinTempRecords=$((winsMoney))
+        winPerDay=$((daysCount)); 
+    fi
+}
+#End with UC6
