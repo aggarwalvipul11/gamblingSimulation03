@@ -2,31 +2,51 @@
 
 # Welcome Message
 echo "Welcome to the world of Gambling."
- 
-# Assign variables and add values(Money).
-STAKE_MONEY_PER_DAY=100;
-BET_MONEY_PER_GAME=1;
 
-# Added variables for adding a limit for minimum money lost and maximum money wins.
+declare -A gamblerPaidPerDay
+
+# Declare variables and assign values. 
+STAKE_MONEY_PER_DAY=100;
+TOTAL_DAYS_PLAYED=20;
 STAKE_PERCENT=$(($((STAKE_MONEY_PER_DAY))*50/100));
 MAX_MONEY_WIN_PER_DAY=$((STAKE_MONEY_PER_DAY+STAKE_PERCENT));
 MIN_MONEY_LOST_PER_DAY=$((STAKE_MONEY_PER_DAY-STAKE_PERCENT));
+
+TOTAL_STAKE_AMOUNT=$((STAKE_MONEY_PER_DAY*TOTAL_DAYS_PLAYED));
 moneyEarns=$((STAKE_MONEY_PER_DAY));
+exactMoneyEarn=0;
 
-# Apply while condition and checks the condition mets or not
-while [[ $moneyEarns -le $MAX_MONEY_WIN_PER_DAY && $moneyEarns -ge $MIN_MONEY_LOST_PER_DAY ]]
+# Gambler plays for 20 Days. 
+for (( daysCount=1;daysCount<=$TOTAL_DAYS_PLAYED;daysCount++ ))
 do
-	gameResult=$(($RANDOM%2));
+	while [[ $moneyEarns -le $MAX_MONEY_WIN_PER_DAY && $moneyEarns -ge $MIN_MONEY_LOST_PER_DAY ]]
+	do
+		gameResult=$(($RANDOM%2));
 
-	# Apply if condition and if Gamble wins or lost.
-	if [[ $gameResult -eq 1 ]]
-	then
-		echo "Gambler Win"
-		moneyEarns=$((moneyEarns+BET_MONEY_PER_GAME));
-	else
-		echo "Gambler lost"
-		moneyEarns=$((moneyEarns-BET_MONEY_PER_GAME));
-	fi
+		if [[ $gameResult -eq 1 ]]
+		then
+			((moneyEarns++));
+		else
+			((moneyEarns--));
+		fi
+	done
+	gamblerPaidPerDay[daysCount]=$((moneyEarns));
+	exactMoneyEarn=$(($exactMoneyEarn+$moneyEarns));
+	moneyEarns=$((STAKE_MONEY_PER_DAY));
 done
 
-#End of Use Case 03
+echo "After 20 days, Total Amount Gambler Earns: $exactMoneyEarn"
+
+if [[ $exactMoneyEarn -gt $TOTAL_STAKE_AMOUNT ]]
+then
+	moneyWins=`expr $exactMoneyEarn - $TOTAL_STAKE_AMOUNT`
+	echo "Gambler wins: $moneyWins"
+elif [[ $exactMoneyEarn -lt $TOTAL_STAKE_AMOUNT ]]
+then
+	moneyLost=`expr $TOTAL_STAKE_AMOUNT - $exactMoneyEarn`
+	echo "Gambler lost: $moneyLost"
+else
+	echo "Gambler has Neither Won Nor Lost."
+fi
+
+#End of UseCase 04
