@@ -5,21 +5,26 @@ echo "Welcome to the world of Gambling."
 
 declare -A gamblerPaidPerDay
 
-# Declare variables and assign values. 
+#CONSTANTS
 STAKE_MONEY_PER_DAY=100;
-TOTAL_DAYS_PLAYED=20;
 STAKE_PERCENT=$(($((STAKE_MONEY_PER_DAY))*50/100));
 MAX_MONEY_WIN_PER_DAY=$((STAKE_MONEY_PER_DAY+STAKE_PERCENT));
 MIN_MONEY_LOST_PER_DAY=$((STAKE_MONEY_PER_DAY-STAKE_PERCENT));
+TOTAL_DAYS_IN_MONTH=30;
+TOTAL_STAKE_AMOUNT=$((STAKE_MONEY_PER_DAY*TOTAL_DAYS_IN_MONTH));
 
-TOTAL_STAKE_AMOUNT=$((STAKE_MONEY_PER_DAY*TOTAL_DAYS_PLAYED));
+# Declare variables and assign values.
 moneyEarns=$((STAKE_MONEY_PER_DAY));
 exactMoneyEarn=0;
+countProfitDays=0;
+countLossDays=0;
+totalMoneyWinsInMonth=0;
+totalMoneyLostInMonth=0;
 
-# Gambler plays for 20 Days. 
-for (( daysCount=1;daysCount<=$TOTAL_DAYS_PLAYED;daysCount++ ))
+# Gambler plays for 1 Month. 
+for (( daysCount=1;daysCount<=$TOTAL_DAYS_IN_MONTH;daysCount++ ))
 do
-	while [[ $moneyEarns -le $MAX_MONEY_WIN_PER_DAY && $moneyEarns -ge $MIN_MONEY_LOST_PER_DAY ]]
+	while [[ $moneyEarns -lt $MAX_MONEY_WIN_PER_DAY && $moneyEarns -gt $MIN_MONEY_LOST_PER_DAY ]]
 	do
 		gameResult=$(($RANDOM%2));
 
@@ -30,23 +35,30 @@ do
 			((moneyEarns--));
 		fi
 	done
+        if [[ $moneyEarns -eq $MAX_MONEY_WIN_PER_DAY ]]
+        then    
+            ((countProfitDays++));
+            totalMoneyWinsInMonth=$(($totalMoneyWinsInMonth+$moneyEarns));
+        elif [[ $moneyEarns -eq $MIN_MONEY_LOST_PER_DAY ]]
+        then
+            ((countLossDays++));
+            totalMoneyLostInMonth=$(($totalMoneyLostInMonth+$moneyEarns));
+        else
+            echo "No Loss No Profit!"
+        fi                        
 	gamblerPaidPerDay[daysCount]=$((moneyEarns));
-	exactMoneyEarn=$(($exactMoneyEarn+$moneyEarns));
+	exactMoneyEarn=$(($exactMoneyEarn+$moneyEarns));    
 	moneyEarns=$((STAKE_MONEY_PER_DAY));
 done
 
-echo "After 20 days, Total Amount Gambler Earns: $exactMoneyEarn"
-
 if [[ $exactMoneyEarn -gt $TOTAL_STAKE_AMOUNT ]]
 then
-	moneyWins=`expr $exactMoneyEarn - $TOTAL_STAKE_AMOUNT`
-	echo "Gambler wins: $moneyWins"
+    echo "At End of Month, Gambler Wins $countProfitDays Days and $totalMoneyWinsInMonth Dollar."
 elif [[ $exactMoneyEarn -lt $TOTAL_STAKE_AMOUNT ]]
 then
-	moneyLost=`expr $TOTAL_STAKE_AMOUNT - $exactMoneyEarn`
-	echo "Gambler lost: $moneyLost"
+    echo "At End of Month, Gambler Lost $countLossDays Days and $totalMoneyLostInMonth Dollar."
 else
-	echo "Gambler has Neither Won Nor Lost."
+    echo "Gambler has Neither Won Nor Lost."
 fi
 
-#End of UseCase 04
+#End of UseCase 05
