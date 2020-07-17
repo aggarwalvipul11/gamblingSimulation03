@@ -14,8 +14,14 @@ MIN_MONEY_LOST_PER_DAY=$((STAKE_MONEY_PER_DAY-STAKE_PERCENT));
 moneyEarns=$((STAKE_MONEY_PER_DAY));
 
 # Apply while condition and checks the condition mets or not
-while [[ $moneyEarns -le $MAX_MONEY_WIN_PER_DAY && $moneyEarns -ge $MIN_MONEY_LOST_PER_DAY ]]
-do
+function checksGamblerWinsBetPerDay() {
+	while [[ $moneyEarns -le $MAX_MONEY_WIN_PER_DAY && $moneyEarns -ge $MIN_MONEY_LOST_PER_DAY ]]
+	do
+		findWinOrLoss	
+	done
+}
+
+function findWinOrLoss() {
 	gameResult=$(($RANDOM%2));
 
 	# Apply if condition and if Gamble wins or lost.
@@ -27,6 +33,7 @@ do
 		echo "Gambler lost"
 		moneyEarns=$((moneyEarns-BET_MONEY_PER_GAME));
 	fi
-done
+}
 
+checksGamblerWinsBetPerDay
 #End of Use Case 03
