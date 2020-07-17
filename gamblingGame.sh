@@ -17,36 +17,57 @@ moneyEarns=$((STAKE_MONEY_PER_DAY));
 exactMoneyEarn=0;
 
 # Gambler plays for 20 Days. 
-for (( daysCount=1;daysCount<=$TOTAL_DAYS_PLAYED;daysCount++ ))
-do
+function checkMoneyFlowPerMonth() {
+	for (( daysCount=1;daysCount<=$TOTAL_DAYS_PLAYED;daysCount++ ))
+	do
+		checksGamblerWinsBetPerDay
+		valueAssignMoney
+	done
+}
+
+function checksGamblerWinsBetPerDay() {
 	while [[ $moneyEarns -le $MAX_MONEY_WIN_PER_DAY && $moneyEarns -ge $MIN_MONEY_LOST_PER_DAY ]]
 	do
-		gameResult=$(($RANDOM%2));
-
-		if [[ $gameResult -eq 1 ]]
-		then
-			((moneyEarns++));
-		else
-			((moneyEarns--));
-		fi
+		findWinOrLoss
 	done
+}
+
+function valueAssignMoney() {
 	gamblerPaidPerDay[daysCount]=$((moneyEarns));
 	exactMoneyEarn=$(($exactMoneyEarn+$moneyEarns));
 	moneyEarns=$((STAKE_MONEY_PER_DAY));
-done
+}
 
-echo "After 20 days, Total Amount Gambler Earns: $exactMoneyEarn"
+function findWinOrLoss() {
+	gameResult=$(($RANDOM%2));
 
-if [[ $exactMoneyEarn -gt $TOTAL_STAKE_AMOUNT ]]
-then
-	moneyWins=`expr $exactMoneyEarn - $TOTAL_STAKE_AMOUNT`
-	echo "Gambler wins: $moneyWins"
-elif [[ $exactMoneyEarn -lt $TOTAL_STAKE_AMOUNT ]]
-then
-	moneyLost=`expr $TOTAL_STAKE_AMOUNT - $exactMoneyEarn`
-	echo "Gambler lost: $moneyLost"
-else
-	echo "Gambler has Neither Won Nor Lost."
-fi
+	if [[ $gameResult -eq 1 ]]
+	then
+		((moneyEarns++));
+	else
+		((moneyEarns--));
+	fi
+}
 
+function printGamberTotalEarnings() {
+	echo "After 20 days, Total Amount Gambler Earns: $exactMoneyEarn"
+}
+
+function checksIfGamberWInsOrLost() {
+	if [[ $exactMoneyEarn -gt $TOTAL_STAKE_AMOUNT ]]
+	then
+		moneyWins=`expr $exactMoneyEarn - $TOTAL_STAKE_AMOUNT`
+		echo "Gambler wins: $moneyWins"
+	elif [[ $exactMoneyEarn -lt $TOTAL_STAKE_AMOUNT ]]
+	then
+		moneyLost=`expr $TOTAL_STAKE_AMOUNT - $exactMoneyEarn`
+		echo "Gambler lost: $moneyLost"
+	else
+		echo "Gambler has Neither Won Nor Lost."
+	fi
+}
+
+checkMoneyFlowPerMonth
+printGamberTotalEarnings
+checksIfGamberWInsOrLost
 #End of UseCase 04
