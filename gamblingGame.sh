@@ -1,93 +1,94 @@
-#!/bin/bash
+#!/bin/bash 
 
 # Welcome Message
 echo "Welcome to the world of Gambling."
 
-declare -a luckiestDay
-declare -a unluckiestDay
+declare -A gamblerPaidPerDay
 
-# CONSTANTS 
-STAKE_MONEY_PER_DAY=100;
-TOTAL_DAYS_IN_MONTH=10;
-
-# Declare variables and assign values.
-tranferStakeMoneyPerDay=0;
-newStakeMoneyPerDay=0;
-collectWinTempRecords=0;
-collectLostTempRecords=0;
-winPerDay=0;
-lostPerDay=0;
-
-moneyEarns=$((STAKE_MONEY_PER_DAY));
-
-# Gambler plays for a Month and Finds Gambler Luckiest Day and Unluckiest Day.
-function gambleGamePlay() { 
-	for (( daysCount=1;daysCount<=$TOTAL_DAYS_IN_MONTH;daysCount++ ))
-	do
-    		intializationNConversionGameProcess
-    		checksGamblerConditionsWinOrLost
-    		checkGamblerDaysNMoneyWinsOrLostMax
+# Declare variables and assign values. 
+function resetValues() {
+    #CONSTANTS
+    STAKE_MONEY_PER_DAY=100;
+    STAKE_PERCENT=$(($((STAKE_MONEY_PER_DAY))*50/100));
+    MAX_MONEY_WIN_PER_DAY=$((STAKE_MONEY_PER_DAY+STAKE_PERCENT));
+    MIN_MONEY_LOST_PER_DAY=$((STAKE_MONEY_PER_DAY-STAKE_PERCENT));
+    TOTAL_DAYS_IN_MONTH=30;
+    TOTAL_STAKE_AMOUNT=$((STAKE_MONEY_PER_DAY*TOTAL_DAYS_IN_MONTH));
     
-    	echo "As the day $daysCount, Gambler starts with cash $tranferStakeMoneyPerDay and at the end he earns $newStakeMoneyPerDay dollars."
-	done
-
-echo "Gambler luckiest day was day $winPerDay and the money that win maximum was $collectWinTempRecords"
-echo "Gambler Unluckiest day was day $lostPerDay and the money that lost maximum was $collectLostTempRecords"
-
+    # Declare variables and assign values.
+    moneyEarns=$((STAKE_MONEY_PER_DAY));
+    exactMoneyEarn=0;
+    countProfitDays=0;
+    countLossDays=0;
+    totalMoneyWinsInMonth=0;
+    totalMoneyLostInMonth=0;
 }
-
-function intializationNConversionGameProcess() {
-    tranferStakeMoneyPerDay=$(($newStakeMoneyPerDay+$STAKE_MONEY_PER_DAY));
-    stakeGamePercent=$(($((tranferStakeMoneyPerDay))*50/100));
-    maxMoneyWinPerDay=$((tranferStakeMoneyPerDay+stakeGamePercent));
-    minMoneyLostPerDay=$((tranferStakeMoneyPerDay-stakeGamePercent));
-    moneyEarns=$((tranferStakeMoneyPerDay));
-}
-
-function checksGamblerConditionsWinOrLost() {
-    while [[ $moneyEarns -lt $maxMoneyWinPerDay && $moneyEarns -gt $minMoneyLostPerDay ]]
+# Gambler plays for Months. 
+function daysCountInMonth() {
+    for (( daysCount=1;daysCount<=$TOTAL_DAYS_IN_MONTH;daysCount++ ))
     do
-	gamblerWinsOrLooseGamePerDay
+        checksGamblerWinsBetPerDay
+        checkMoneyEarnsEqual                            
+        valueAssignMoney
     done
-    newStakeMoneyPerDay=$((moneyEarns));
 }
 
-function checkGamblerDaysNMoneyWinsOrLostMax() {
-    if [[ $tranferStakeMoneyPerDay -lt $moneyEarns ]]
+function checksGamblerWinsBetPerDay() {
+    while [[ $moneyEarns -lt $MAX_MONEY_WIN_PER_DAY && $moneyEarns -gt $MIN_MONEY_LOST_PER_DAY ]]
+    do
+	   findWinOrLoss
+    done
+}
+
+function findWinOrLoss() {
+    gameResult=$(($RANDOM%2));
+
+    if [[ $gameResult -eq 1 ]]
     then
-        winsMoney=$(($moneyEarns-$tranferStakeMoneyPerDay))
-        maxWinMoneyAndDays
+        ((moneyEarns++));
     else
-        lostMoney=$(($tranferStakeMoneyPerDay-$moneyEarns));
-        maxLostMoneyAndDays
+        ((moneyEarns--));
     fi
 }
 
-function gamblerWinsOrLooseGamePerDay() {
-	gameResult=$(($RANDOM%2));
-	if [[ $gameResult -eq 1 ]]
-	then
-		((moneyEarns++));        
-	else
-		((moneyEarns--));
-    	fi
-}
-
-function maxLostMoneyAndDays() {
-    if [[ $lostMoney -gt $collectLostTempRecords ]]
+function checkMoneyEarnsEqual() {
+    if [[ $moneyEarns -eq $MAX_MONEY_WIN_PER_DAY ]]
+    then    
+        ((countProfitDays++));
+        totalMoneyWinsInMonth=$(($totalMoneyWinsInMonth+$moneyEarns));
+    elif [[ $moneyEarns -eq $MIN_MONEY_LOST_PER_DAY ]]
     then
-        collectLostTempRecords=$(($lostMoney));
-        lostPerDay=$((daysCount));
+        ((countLossDays++));
+        totalMoneyLostInMonth=$(($totalMoneyLostInMonth+$moneyEarns));
+    else
+	    echo "No Loss No Profit!"
     fi
 }
 
-function maxWinMoneyAndDays() {
-    if [[ $winsMoney -gt $collectWinTempRecords ]]
-    then
-        collectWinTempRecords=$((winsMoney))
-        winPerDay=$((daysCount)); 
-    fi
+function valueAssignMoney() {
+    gamblerPaidPerDay[daysCount]=$((moneyEarns));
+    exactMoneyEarn=$(($exactMoneyEarn+$moneyEarns));    
+    moneyEarns=$((STAKE_MONEY_PER_DAY));
 }
 
-gambleGamePlay
-#End with UC6
+function checkGamblerWinsOrEliminate() {
+	monthCheck=1;
+	while [[ $monthCheck -le 12 ]]
+	do
+		resetValues
+    		daysCountInMonth    
+    		if [[ $exactMoneyEarn -gt $TOTAL_STAKE_AMOUNT ]]
+    		then
+        		echo "At end of $monthCheck month, Gambler Wins $countProfitDays Days and continues to play next month :)"
+        		resetValues
+        		daysCountInMonth
+    		else
+       			echo "At end of $monthCheck month, Gambler Lost $countLossDays Days and eliminate from Gambling :("
+        		break;
+ 	   	fi
+		((monthCheck++))
+	done
+}
+
+checkGamblerWinsOrEliminate
+#End of UseCase 07
