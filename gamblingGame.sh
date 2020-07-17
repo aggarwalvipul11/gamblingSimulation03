@@ -20,32 +20,35 @@ lostPerDay=0;
 
 moneyEarns=$((STAKE_MONEY_PER_DAY));
 
-# Gambler plays for a Month and Finds Gambler Luckiest Day and Unluckiest Day. 
-for (( daysCount=1;daysCount<=$TOTAL_DAYS_IN_MONTH;daysCount++ ))
-do
-    intializationNConversionGameProcess
-    checksGamblerConditionsWinOrLost
-    checkGamblerDaysNMoneyWinsOrLostMax
+# Gambler plays for a Month and Finds Gambler Luckiest Day and Unluckiest Day.
+function gambleGamePlay() { 
+	for (( daysCount=1;daysCount<=$TOTAL_DAYS_IN_MONTH;daysCount++ ))
+	do
+    		intializationNConversionGameProcess
+    		checksGamblerConditionsWinOrLost
+    		checkGamblerDaysNMoneyWinsOrLostMax
     
-    echo "As the day $daysCount, Gambler starts with cash $tranferStakeMoneyPerDay and at the end he earns $newStakeMoneyPerDay dollars."
-done
+    	echo "As the day $daysCount, Gambler starts with cash $tranferStakeMoneyPerDay and at the end he earns $newStakeMoneyPerDay dollars."
+	done
 
 echo "Gambler luckiest day was day $winPerDay and the money that win maximum was $collectWinTempRecords"
-echo "Gambler luckiest day was day $lostPerDay and the money that win maximum was $collectLostTempRecords"
+echo "Gambler Unluckiest day was day $lostPerDay and the money that lost maximum was $collectLostTempRecords"
+
+}
 
 function intializationNConversionGameProcess() {
     tranferStakeMoneyPerDay=$(($newStakeMoneyPerDay+$STAKE_MONEY_PER_DAY));
     stakeGamePercent=$(($((tranferStakeMoneyPerDay))*50/100));
     maxMoneyWinPerDay=$((tranferStakeMoneyPerDay+stakeGamePercent));
     minMoneyLostPerDay=$((tranferStakeMoneyPerDay-stakeGamePercent));
-	moneyEarns=$((tranferStakeMoneyPerDay));
+    moneyEarns=$((tranferStakeMoneyPerDay));
 }
 
 function checksGamblerConditionsWinOrLost() {
     while [[ $moneyEarns -lt $maxMoneyWinPerDay && $moneyEarns -gt $minMoneyLostPerDay ]]
-	do
-		gamblerWinsOrLooseGamePerDay
-	done
+    do
+	gamblerWinsOrLooseGamePerDay
+    done
     newStakeMoneyPerDay=$((moneyEarns));
 }
 
@@ -61,13 +64,13 @@ function checkGamblerDaysNMoneyWinsOrLostMax() {
 }
 
 function gamblerWinsOrLooseGamePerDay() {
-    gameResult=$(($RANDOM%2));
+	gameResult=$(($RANDOM%2));
 	if [[ $gameResult -eq 1 ]]
 	then
 		((moneyEarns++));        
 	else
 		((moneyEarns--));
-    fi
+    	fi
 }
 
 function maxLostMoneyAndDays() {
@@ -85,4 +88,6 @@ function maxWinMoneyAndDays() {
         winPerDay=$((daysCount)); 
     fi
 }
+
+gambleGamePlay
 #End with UC6
